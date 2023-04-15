@@ -30,7 +30,7 @@ async def watch_zmq(channel: str, q: asyncio.Queue):
 
 async def run_multimon(label: str = "ch0"):
     proc = await asyncio.create_subprocess_exec(
-        "multimon-ng", "--label", label, "--timestamp", "-c", "-a", "POCSAG512", "-a", "POCSAG1200", "-a", "POCSAG2400", "-a", "FLEX", "-",
+        "multimon-ng", "--label", label, "--timestamp", "-c", "-a", "POCSAG512", "-a", "POCSAG1200", "-a", "POCSAG2400", "-a", "FLEX_NEXT", "-",
         stdin=asyncio.subprocess.PIPE,
         stdout=asyncio.subprocess.PIPE
     )
