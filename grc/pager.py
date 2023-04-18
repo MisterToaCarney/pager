@@ -35,9 +35,8 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
+from gnuradio import soapy
 from gnuradio import zeromq
-import osmosdr
-import time
 
 
 
@@ -79,11 +78,11 @@ class pager(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.rtl_samp_rate = rtl_samp_rate = 242550
-        self.decimation = decimation = 11
+        self.rtl_samp_rate = rtl_samp_rate = 1058400
+        self.decimation = decimation = 48
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.hw_freq = hw_freq = 157.95e6
+        self.hw_freq = hw_freq = 157.55e6
 
         ##################################################
         # Blocks
@@ -91,23 +90,21 @@ class pager(gr.top_block, Qt.QWidget):
 
         self.zeromq_pub_sink_0_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch2.socket', 500, False, (-1), '', False)
         self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch1.socket', 500, False, (-1), '', False)
-        self.rtlsdr_source_0 = osmosdr.source(
-            args="numchan=" + str(1) + " " + ""
-        )
-        self.rtlsdr_source_0.set_time_unknown_pps(osmosdr.time_spec_t())
-        self.rtlsdr_source_0.set_sample_rate(rtl_samp_rate)
-        self.rtlsdr_source_0.set_center_freq(hw_freq, 0)
-        self.rtlsdr_source_0.set_freq_corr(0, 0)
-        self.rtlsdr_source_0.set_dc_offset_mode(0, 0)
-        self.rtlsdr_source_0.set_iq_balance_mode(0, 0)
-        self.rtlsdr_source_0.set_gain_mode(False, 0)
-        self.rtlsdr_source_0.set_gain(18, 0)
-        self.rtlsdr_source_0.set_if_gain(20, 0)
-        self.rtlsdr_source_0.set_bb_gain(20, 0)
-        self.rtlsdr_source_0.set_antenna('', 0)
-        self.rtlsdr_source_0.set_bandwidth(0, 0)
+        self.soapy_plutosdr_source_0 = None
+        dev = 'driver=plutosdr'
+        stream_args = ''
+        tune_args = ['']
+        settings = ['']
+
+        self.soapy_plutosdr_source_0 = soapy.source(dev, "fc32", 1, 'driver=plutosdr',
+                                  stream_args, tune_args, settings)
+        self.soapy_plutosdr_source_0.set_sample_rate(0, rtl_samp_rate)
+        self.soapy_plutosdr_source_0.set_bandwidth(0, 1000000)
+        self.soapy_plutosdr_source_0.set_gain_mode(0, True)
+        self.soapy_plutosdr_source_0.set_frequency(0, hw_freq)
+        self.soapy_plutosdr_source_0.set_gain(0, min(max(20, 0.0), 73.0))
         self.qtgui_waterfall_sink_x_0_0 = qtgui.waterfall_sink_c(
-            1024, #size
+            2048, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             samp_rate, #bw
@@ -136,7 +133,7 @@ class pager(gr.top_block, Qt.QWidget):
             self.qtgui_waterfall_sink_x_0_0.set_color_map(i, colors[i])
             self.qtgui_waterfall_sink_x_0_0.set_line_alpha(i, alphas[i])
 
-        self.qtgui_waterfall_sink_x_0_0.set_intensity_range(-90, -10)
+        self.qtgui_waterfall_sink_x_0_0.set_intensity_range(-80, -10)
 
         self._qtgui_waterfall_sink_x_0_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0_0.qwidget(), Qt.QWidget)
 
@@ -146,7 +143,7 @@ class pager(gr.top_block, Qt.QWidget):
         for c in range(1, 2):
             self.top_grid_layout.setColumnStretch(c, 1)
         self.qtgui_waterfall_sink_x_0 = qtgui.waterfall_sink_c(
-            1024, #size
+            2048, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             samp_rate, #bw
@@ -175,7 +172,7 @@ class pager(gr.top_block, Qt.QWidget):
             self.qtgui_waterfall_sink_x_0.set_color_map(i, colors[i])
             self.qtgui_waterfall_sink_x_0.set_line_alpha(i, alphas[i])
 
-        self.qtgui_waterfall_sink_x_0.set_intensity_range(-90, -10)
+        self.qtgui_waterfall_sink_x_0.set_intensity_range(-80, -10)
 
         self._qtgui_waterfall_sink_x_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0.qwidget(), Qt.QWidget)
 
@@ -191,30 +188,36 @@ class pager(gr.top_block, Qt.QWidget):
         self.analog_nbfm_rx_0_0_0_0 = analog.nbfm_rx(
         	audio_rate=samp_rate,
         	quad_rate=samp_rate,
-        	tau=(75e-6),
+        	tau=(50e-6),
         	max_dev=5e3,
           )
         self.analog_nbfm_rx_0 = analog.nbfm_rx(
         	audio_rate=samp_rate,
         	quad_rate=samp_rate,
-        	tau=(75e-6),
+        	tau=(50e-6),
         	max_dev=5e3,
           )
+        self.analog_agc_xx_0_0 = analog.agc_ff((1e-4), 0.2, 0.2)
+        self.analog_agc_xx_0_0.set_max_gain(65536)
+        self.analog_agc_xx_0 = analog.agc_ff((1e-4), 0.2, 0.2)
+        self.analog_agc_xx_0.set_max_gain(65536)
 
 
         ##################################################
         # Connections
         ##################################################
-        self.connect((self.analog_nbfm_rx_0, 0), (self.blocks_float_to_short_0, 0))
-        self.connect((self.analog_nbfm_rx_0_0_0_0, 0), (self.blocks_float_to_short_0_0, 0))
+        self.connect((self.analog_agc_xx_0, 0), (self.blocks_float_to_short_0, 0))
+        self.connect((self.analog_agc_xx_0_0, 0), (self.blocks_float_to_short_0_0, 0))
+        self.connect((self.analog_nbfm_rx_0, 0), (self.analog_agc_xx_0, 0))
+        self.connect((self.analog_nbfm_rx_0_0_0_0, 0), (self.analog_agc_xx_0_0, 0))
         self.connect((self.blocks_float_to_short_0, 0), (self.zeromq_pub_sink_0, 0))
         self.connect((self.blocks_float_to_short_0_0, 0), (self.zeromq_pub_sink_0_0, 0))
         self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.analog_nbfm_rx_0, 0))
         self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.qtgui_waterfall_sink_x_0, 0))
         self.connect((self.freq_xlating_fir_filter_xxx_0_0, 0), (self.analog_nbfm_rx_0_0_0_0, 0))
         self.connect((self.freq_xlating_fir_filter_xxx_0_0, 0), (self.qtgui_waterfall_sink_x_0_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
-        self.connect((self.rtlsdr_source_0, 0), (self.freq_xlating_fir_filter_xxx_0_0, 0))
+        self.connect((self.soapy_plutosdr_source_0, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
+        self.connect((self.soapy_plutosdr_source_0, 0), (self.freq_xlating_fir_filter_xxx_0_0, 0))
 
 
     def closeEvent(self, event):
@@ -232,7 +235,7 @@ class pager(gr.top_block, Qt.QWidget):
         self.rtl_samp_rate = rtl_samp_rate
         self.set_lpf(firdes.low_pass(1.0, self.rtl_samp_rate, self.rtl_samp_rate / (2*self.decimation), 5000, window.WIN_HAMMING, 6.76))
         self.set_samp_rate(self.rtl_samp_rate // self.decimation)
-        self.rtlsdr_source_0.set_sample_rate(self.rtl_samp_rate)
+        self.soapy_plutosdr_source_0.set_sample_rate(0, self.rtl_samp_rate)
 
     def get_decimation(self):
         return self.decimation
@@ -265,7 +268,7 @@ class pager(gr.top_block, Qt.QWidget):
         self.hw_freq = hw_freq
         self.freq_xlating_fir_filter_xxx_0.set_center_freq((157.95e6 - self.hw_freq))
         self.freq_xlating_fir_filter_xxx_0_0.set_center_freq((157.925e6 - self.hw_freq))
-        self.rtlsdr_source_0.set_center_freq(self.hw_freq, 0)
+        self.soapy_plutosdr_source_0.set_frequency(0, self.hw_freq)
 
 
 
