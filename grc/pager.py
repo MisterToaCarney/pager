@@ -35,7 +35,7 @@ import signal
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
-from gnuradio import soapy
+from gnuradio import iio
 from gnuradio import zeromq
 
 
@@ -78,11 +78,11 @@ class pager(gr.top_block, Qt.QWidget):
         ##################################################
         # Variables
         ##################################################
-        self.rtl_samp_rate = rtl_samp_rate = 1058400
-        self.decimation = decimation = 48
+        self.rtl_samp_rate = rtl_samp_rate = 264600
+        self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.hw_freq = hw_freq = 157.55e6
+        self.hw_freq = hw_freq = 157.95e6
 
         ##################################################
         # Blocks
@@ -90,19 +90,6 @@ class pager(gr.top_block, Qt.QWidget):
 
         self.zeromq_pub_sink_0_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch2.socket', 500, False, (-1), '', False)
         self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch1.socket', 500, False, (-1), '', False)
-        self.soapy_plutosdr_source_0 = None
-        dev = 'driver=plutosdr'
-        stream_args = ''
-        tune_args = ['']
-        settings = ['']
-
-        self.soapy_plutosdr_source_0 = soapy.source(dev, "fc32", 1, 'driver=plutosdr',
-                                  stream_args, tune_args, settings)
-        self.soapy_plutosdr_source_0.set_sample_rate(0, rtl_samp_rate)
-        self.soapy_plutosdr_source_0.set_bandwidth(0, 1000000)
-        self.soapy_plutosdr_source_0.set_gain_mode(0, True)
-        self.soapy_plutosdr_source_0.set_frequency(0, hw_freq)
-        self.soapy_plutosdr_source_0.set_gain(0, min(max(20, 0.0), 73.0))
         self.qtgui_waterfall_sink_x_0_0 = qtgui.waterfall_sink_c(
             2048, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
@@ -181,6 +168,59 @@ class pager(gr.top_block, Qt.QWidget):
             self.top_grid_layout.setRowStretch(r, 1)
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
+        self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
+            4096, #size
+            window.WIN_BLACKMAN_hARRIS, #wintype
+            0, #fc
+            rtl_samp_rate, #bw
+            "", #name
+            1,
+            None # parent
+        )
+        self.qtgui_freq_sink_x_0.set_update_time(0.10)
+        self.qtgui_freq_sink_x_0.set_y_axis((-100), 0)
+        self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
+        self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
+        self.qtgui_freq_sink_x_0.enable_autoscale(False)
+        self.qtgui_freq_sink_x_0.enable_grid(False)
+        self.qtgui_freq_sink_x_0.set_fft_average(1.0)
+        self.qtgui_freq_sink_x_0.enable_axis_labels(False)
+        self.qtgui_freq_sink_x_0.enable_control_panel(False)
+        self.qtgui_freq_sink_x_0.set_fft_window_normalized(False)
+
+        self.qtgui_freq_sink_x_0.disable_legend()
+
+
+        labels = ['', '', '', '', '',
+            '', '', '', '', '']
+        widths = [1, 1, 1, 1, 1,
+            1, 1, 1, 1, 1]
+        colors = ["blue", "red", "green", "black", "cyan",
+            "magenta", "yellow", "dark red", "dark green", "dark blue"]
+        alphas = [1.0, 1.0, 1.0, 1.0, 1.0,
+            1.0, 1.0, 1.0, 1.0, 1.0]
+
+        for i in range(1):
+            if len(labels[i]) == 0:
+                self.qtgui_freq_sink_x_0.set_line_label(i, "Data {0}".format(i))
+            else:
+                self.qtgui_freq_sink_x_0.set_line_label(i, labels[i])
+            self.qtgui_freq_sink_x_0.set_line_width(i, widths[i])
+            self.qtgui_freq_sink_x_0.set_line_color(i, colors[i])
+            self.qtgui_freq_sink_x_0.set_line_alpha(i, alphas[i])
+
+        self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
+        self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
+        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32('ip:pluto.local' if 'ip:pluto.local' else iio.get_pluto_uri(), [True, True], 32768)
+        self.iio_pluto_source_0.set_len_tag_key('packet_len')
+        self.iio_pluto_source_0.set_frequency(int(hw_freq))
+        self.iio_pluto_source_0.set_samplerate(rtl_samp_rate)
+        self.iio_pluto_source_0.set_gain_mode(0, 'slow_attack')
+        self.iio_pluto_source_0.set_gain(0, 64)
+        self.iio_pluto_source_0.set_quadrature(True)
+        self.iio_pluto_source_0.set_rfdc(True)
+        self.iio_pluto_source_0.set_bbdc(True)
+        self.iio_pluto_source_0.set_filter_params('Auto', '', 0, 0)
         self.freq_xlating_fir_filter_xxx_0_0 = filter.freq_xlating_fir_filter_ccc(decimation, lpf, (157.925e6 - hw_freq), rtl_samp_rate)
         self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(decimation, lpf, (157.95e6 - hw_freq), rtl_samp_rate)
         self.blocks_float_to_short_0_0 = blocks.float_to_short(1, 8192)
@@ -216,8 +256,9 @@ class pager(gr.top_block, Qt.QWidget):
         self.connect((self.freq_xlating_fir_filter_xxx_0, 0), (self.qtgui_waterfall_sink_x_0, 0))
         self.connect((self.freq_xlating_fir_filter_xxx_0_0, 0), (self.analog_nbfm_rx_0_0_0_0, 0))
         self.connect((self.freq_xlating_fir_filter_xxx_0_0, 0), (self.qtgui_waterfall_sink_x_0_0, 0))
-        self.connect((self.soapy_plutosdr_source_0, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
-        self.connect((self.soapy_plutosdr_source_0, 0), (self.freq_xlating_fir_filter_xxx_0_0, 0))
+        self.connect((self.iio_pluto_source_0, 0), (self.freq_xlating_fir_filter_xxx_0, 0))
+        self.connect((self.iio_pluto_source_0, 0), (self.freq_xlating_fir_filter_xxx_0_0, 0))
+        self.connect((self.iio_pluto_source_0, 0), (self.qtgui_freq_sink_x_0, 0))
 
 
     def closeEvent(self, event):
@@ -235,7 +276,8 @@ class pager(gr.top_block, Qt.QWidget):
         self.rtl_samp_rate = rtl_samp_rate
         self.set_lpf(firdes.low_pass(1.0, self.rtl_samp_rate, self.rtl_samp_rate / (2*self.decimation), 5000, window.WIN_HAMMING, 6.76))
         self.set_samp_rate(self.rtl_samp_rate // self.decimation)
-        self.soapy_plutosdr_source_0.set_sample_rate(0, self.rtl_samp_rate)
+        self.iio_pluto_source_0.set_samplerate(self.rtl_samp_rate)
+        self.qtgui_freq_sink_x_0.set_frequency_range(0, self.rtl_samp_rate)
 
     def get_decimation(self):
         return self.decimation
@@ -268,7 +310,7 @@ class pager(gr.top_block, Qt.QWidget):
         self.hw_freq = hw_freq
         self.freq_xlating_fir_filter_xxx_0.set_center_freq((157.95e6 - self.hw_freq))
         self.freq_xlating_fir_filter_xxx_0_0.set_center_freq((157.925e6 - self.hw_freq))
-        self.soapy_plutosdr_source_0.set_frequency(0, self.hw_freq)
+        self.iio_pluto_source_0.set_frequency(int(self.hw_freq))
 
 
 
