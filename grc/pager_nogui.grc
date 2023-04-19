@@ -49,7 +49,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: 157.95e6
+    value: 157.9e6
   states:
     bus_sink: false
     bus_source: false
@@ -265,9 +265,9 @@ blocks:
     fpass: '0'
     frequency: int(hw_freq)
     fstop: '0'
-    gain1: '''slow_attack'''
+    gain1: '''manual'''
     len_tag_key: packet_len
-    manual_gain1: '64'
+    manual_gain1: '50'
     maxoutbuf: '0'
     minoutbuf: '0'
     quadrature: 'True'

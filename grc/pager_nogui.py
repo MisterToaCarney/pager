@@ -38,7 +38,7 @@ class pager_nogui(gr.top_block):
         self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.hw_freq = hw_freq = 157.95e6
+        self.hw_freq = hw_freq = 157.9e6
 
         ##################################################
         # Blocks
@@ -50,8 +50,8 @@ class pager_nogui(gr.top_block):
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(int(hw_freq))
         self.iio_pluto_source_0.set_samplerate(rtl_samp_rate)
-        self.iio_pluto_source_0.set_gain_mode(0, 'slow_attack')
-        self.iio_pluto_source_0.set_gain(0, 64)
+        self.iio_pluto_source_0.set_gain_mode(0, 'manual')
+        self.iio_pluto_source_0.set_gain(0, 50)
         self.iio_pluto_source_0.set_quadrature(True)
         self.iio_pluto_source_0.set_rfdc(True)
         self.iio_pluto_source_0.set_bbdc(True)
@@ -98,17 +98,17 @@ class pager_nogui(gr.top_block):
 
     def set_rtl_samp_rate(self, rtl_samp_rate):
         self.rtl_samp_rate = rtl_samp_rate
-        self.set_lpf(firdes.low_pass(1.0, self.rtl_samp_rate, self.rtl_samp_rate / (2*self.decimation), 5000, window.WIN_HAMMING, 6.76))
         self.iio_pluto_source_0.set_samplerate(self.rtl_samp_rate)
         self.set_samp_rate(self.rtl_samp_rate // self.decimation)
+        self.set_lpf(firdes.low_pass(1.0, self.rtl_samp_rate, self.rtl_samp_rate / (2*self.decimation), 5000, window.WIN_HAMMING, 6.76))
 
     def get_decimation(self):
         return self.decimation
 
     def set_decimation(self, decimation):
         self.decimation = decimation
-        self.set_lpf(firdes.low_pass(1.0, self.rtl_samp_rate, self.rtl_samp_rate / (2*self.decimation), 5000, window.WIN_HAMMING, 6.76))
         self.set_samp_rate(self.rtl_samp_rate // self.decimation)
+        self.set_lpf(firdes.low_pass(1.0, self.rtl_samp_rate, self.rtl_samp_rate / (2*self.decimation), 5000, window.WIN_HAMMING, 6.76))
 
     def get_samp_rate(self):
         return self.samp_rate

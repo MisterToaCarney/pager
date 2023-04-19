@@ -82,7 +82,7 @@ class pager(gr.top_block, Qt.QWidget):
         self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.hw_freq = hw_freq = 157.95e6
+        self.hw_freq = hw_freq = 157.9e6
 
         ##################################################
         # Blocks
@@ -120,7 +120,7 @@ class pager(gr.top_block, Qt.QWidget):
             self.qtgui_waterfall_sink_x_0_0.set_color_map(i, colors[i])
             self.qtgui_waterfall_sink_x_0_0.set_line_alpha(i, alphas[i])
 
-        self.qtgui_waterfall_sink_x_0_0.set_intensity_range(-80, -10)
+        self.qtgui_waterfall_sink_x_0_0.set_intensity_range(-110, -30)
 
         self._qtgui_waterfall_sink_x_0_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0_0.qwidget(), Qt.QWidget)
 
@@ -159,7 +159,7 @@ class pager(gr.top_block, Qt.QWidget):
             self.qtgui_waterfall_sink_x_0.set_color_map(i, colors[i])
             self.qtgui_waterfall_sink_x_0.set_line_alpha(i, alphas[i])
 
-        self.qtgui_waterfall_sink_x_0.set_intensity_range(-80, -10)
+        self.qtgui_waterfall_sink_x_0.set_intensity_range(-110, -30)
 
         self._qtgui_waterfall_sink_x_0_win = sip.wrapinstance(self.qtgui_waterfall_sink_x_0.qwidget(), Qt.QWidget)
 
@@ -169,7 +169,7 @@ class pager(gr.top_block, Qt.QWidget):
         for c in range(0, 1):
             self.top_grid_layout.setColumnStretch(c, 1)
         self.qtgui_freq_sink_x_0 = qtgui.freq_sink_c(
-            4096, #size
+            1024, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
             0, #fc
             rtl_samp_rate, #bw
@@ -177,8 +177,8 @@ class pager(gr.top_block, Qt.QWidget):
             1,
             None # parent
         )
-        self.qtgui_freq_sink_x_0.set_update_time(0.10)
-        self.qtgui_freq_sink_x_0.set_y_axis((-100), 0)
+        self.qtgui_freq_sink_x_0.set_update_time(0.01)
+        self.qtgui_freq_sink_x_0.set_y_axis((-110), (-30))
         self.qtgui_freq_sink_x_0.set_y_label('Relative Gain', 'dB')
         self.qtgui_freq_sink_x_0.set_trigger_mode(qtgui.TRIG_MODE_FREE, 0.0, 0, "")
         self.qtgui_freq_sink_x_0.enable_autoscale(False)
@@ -215,8 +215,8 @@ class pager(gr.top_block, Qt.QWidget):
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(int(hw_freq))
         self.iio_pluto_source_0.set_samplerate(rtl_samp_rate)
-        self.iio_pluto_source_0.set_gain_mode(0, 'slow_attack')
-        self.iio_pluto_source_0.set_gain(0, 64)
+        self.iio_pluto_source_0.set_gain_mode(0, 'manual')
+        self.iio_pluto_source_0.set_gain(0, 50)
         self.iio_pluto_source_0.set_quadrature(True)
         self.iio_pluto_source_0.set_rfdc(True)
         self.iio_pluto_source_0.set_bbdc(True)
