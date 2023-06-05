@@ -7,40 +7,28 @@
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
 # Author: toa
-# GNU Radio version: 3.10.5.1
+# GNU Radio version: 3.10.6.0
 
 from packaging.version import Version as StrictVersion
-
-if __name__ == '__main__':
-    import ctypes
-    import sys
-    if sys.platform.startswith('linux'):
-        try:
-            x11 = ctypes.cdll.LoadLibrary('libX11.so')
-            x11.XInitThreads()
-        except:
-            print("Warning: failed to XInitThreads()")
-
 from PyQt5 import Qt
 from gnuradio import qtgui
-from gnuradio.filter import firdes
-import sip
 from gnuradio import analog
 from gnuradio import blocks
 from gnuradio import filter
+from gnuradio.filter import firdes
 from gnuradio import gr
 from gnuradio.fft import window
 import sys
 import signal
+from PyQt5 import Qt
 from argparse import ArgumentParser
 from gnuradio.eng_arg import eng_float, intx
 from gnuradio import eng_notation
 from gnuradio import iio
 from gnuradio import zeromq
+import sip
 
 
-
-from gnuradio import qtgui
 
 class pager(gr.top_block, Qt.QWidget):
 
@@ -51,8 +39,8 @@ class pager(gr.top_block, Qt.QWidget):
         qtgui.util.check_set_qss()
         try:
             self.setWindowIcon(Qt.QIcon.fromTheme('gnuradio-grc'))
-        except:
-            pass
+        except BaseException as exc:
+            print(f"Qt GUI: Could not set Icon: {str(exc)}", file=sys.stderr)
         self.top_scroll_layout = Qt.QVBoxLayout()
         self.setLayout(self.top_scroll_layout)
         self.top_scroll = Qt.QScrollArea()
@@ -72,8 +60,8 @@ class pager(gr.top_block, Qt.QWidget):
                 self.restoreGeometry(self.settings.value("geometry").toByteArray())
             else:
                 self.restoreGeometry(self.settings.value("geometry"))
-        except:
-            pass
+        except BaseException as exc:
+            print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
 
         ##################################################
         # Variables
@@ -82,14 +70,15 @@ class pager(gr.top_block, Qt.QWidget):
         self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
+        self.iio_context = iio_context = "ip:pluto.local"
         self.hw_freq = hw_freq = 157.9e6
 
         ##################################################
         # Blocks
         ##################################################
 
-        self.zeromq_pub_sink_0_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch2.socket', 500, False, (-1), '', False)
-        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch1.socket', 500, False, (-1), '', False)
+        self.zeromq_pub_sink_0_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch2.socket', 500, False, (-1), '', False, True)
+        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch1.socket', 500, False, (-1), '', False, True)
         self.qtgui_waterfall_sink_x_0_0 = qtgui.waterfall_sink_c(
             2048, #size
             window.WIN_BLACKMAN_hARRIS, #wintype
@@ -211,7 +200,7 @@ class pager(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
-        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32('ip:pluto.local' if 'ip:pluto.local' else iio.get_pluto_uri(), [True, True], 32768)
+        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32(iio_context if iio_context else iio.get_pluto_uri(), [True, True], 32768)
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(int(hw_freq))
         self.iio_pluto_source_0.set_samplerate(rtl_samp_rate)
@@ -221,6 +210,8 @@ class pager(gr.top_block, Qt.QWidget):
         self.iio_pluto_source_0.set_rfdc(True)
         self.iio_pluto_source_0.set_bbdc(True)
         self.iio_pluto_source_0.set_filter_params('Auto', '', 0, 0)
+        self.iio_attr_updater_0 = iio.attr_updater('powerdown', '0', 1000)
+        self.iio_attr_sink_0 = iio.attr_sink(iio_context, 'ad9361-phy', 'RX_LO', 0, True)
         self.freq_xlating_fir_filter_xxx_0_0 = filter.freq_xlating_fir_filter_ccc(decimation, lpf, (157.925e6 - hw_freq), rtl_samp_rate)
         self.freq_xlating_fir_filter_xxx_0 = filter.freq_xlating_fir_filter_ccc(decimation, lpf, (157.95e6 - hw_freq), rtl_samp_rate)
         self.blocks_float_to_short_0_0 = blocks.float_to_short(1, 8192)
@@ -246,6 +237,7 @@ class pager(gr.top_block, Qt.QWidget):
         ##################################################
         # Connections
         ##################################################
+        self.msg_connect((self.iio_attr_updater_0, 'out'), (self.iio_attr_sink_0, 'attr'))
         self.connect((self.analog_agc_xx_0, 0), (self.blocks_float_to_short_0, 0))
         self.connect((self.analog_agc_xx_0_0, 0), (self.blocks_float_to_short_0_0, 0))
         self.connect((self.analog_nbfm_rx_0, 0), (self.analog_agc_xx_0, 0))
@@ -303,6 +295,12 @@ class pager(gr.top_block, Qt.QWidget):
         self.freq_xlating_fir_filter_xxx_0.set_taps(self.lpf)
         self.freq_xlating_fir_filter_xxx_0_0.set_taps(self.lpf)
 
+    def get_iio_context(self):
+        return self.iio_context
+
+    def set_iio_context(self, iio_context):
+        self.iio_context = iio_context
+
     def get_hw_freq(self):
         return self.hw_freq
 
@@ -316,8 +314,6 @@ class pager(gr.top_block, Qt.QWidget):
 
 
 def main(top_block_cls=pager, options=None):
-    if gr.enable_realtime_scheduling() != gr.RT_OK:
-        print("Error: failed to enable real-time scheduling.")
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
