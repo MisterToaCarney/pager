@@ -4,6 +4,7 @@ import zmq.asyncio
 import sys
 import typing
 import time
+import postprocess
 
 ctx = zmq.asyncio.Context()
 channels = ["ch1", "ch2"]
@@ -12,10 +13,11 @@ pre_buffer_size = 8
 async def watch_stdout(proc: asyncio.subprocess.Process, log_file: typing.BinaryIO):
     while not proc.stdout.at_eof():
         mon_out = await proc.stdout.readline()
-        sys.stdout.buffer.write(mon_out)
+        # sys.stdout.buffer.write(mon_out)
         log_file.write(mon_out)
-        sys.stdout.buffer.flush()
+        # sys.stdout.buffer.flush()
         log_file.flush()
+        postprocess.begin(mon_out)
 
 async def stream_stdin(proc: asyncio.subprocess.Process, q: asyncio.Queue, buffer_ready: asyncio.Event):
     while proc.returncode is None:
