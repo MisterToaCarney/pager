@@ -9,7 +9,7 @@ def begin(line: bytes):
     text = line.decode()
     print("DEBUG", text, end='')
 
-    date = postprocess.date.parse_date(text)
+    date = postprocess.date.parse(text)
     if date is None: return
 
     parsed_pocsag = pocsag.parse(text, date)
