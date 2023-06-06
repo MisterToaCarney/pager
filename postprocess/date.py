@@ -1,5 +1,7 @@
-from postprocess.regex_parsers import date_re
+import re
 from datetime import datetime
+
+date_re = re.compile(" (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}):")
 
 def parse_date(text) -> datetime | None:
     date_match = date_re.search(text)

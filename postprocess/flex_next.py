@@ -1,8 +1,9 @@
-from re import Pattern
-from postprocess.regex_parsers import flex_re
+import re
 from dataclasses import dataclass
 import datetime
 import copy
+
+flex_re = re.compile("FLEX_NEXT\|(\d+)\/(\d+)\|(\d+\.\d+\.\w)\|(\d+)\|(\w{2})\|(\d)\|(\w+)\|(\d)\.(\d)\.(K|F|C)\|(.*)")
 
 @dataclass
 class FragmentItem:
@@ -11,7 +12,7 @@ class FragmentItem:
 
 @dataclass
 class ParsedFlexPage:
-    flex_match: Pattern[str]
+    flex_match: re.Match[str]
     date: datetime.datetime
     message: str
 

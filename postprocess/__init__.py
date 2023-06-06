@@ -1,6 +1,8 @@
 import postprocess.flex_next as flex
 import postprocess.pocsag as pocsag
 import postprocess.date
+# job_re = re.compile("(\w+) *(PTS|GREEN|ORANGE|RED|PURPLE|NOTIFICATION|AIR TRANSFER|PRIVATE HIRE) *(\d?) *(\w+) *(.+) *; *Flat\/Unit:([\w&\/\- ]+[A-Z]{2,})")
+
 
 def begin(line: bytes):
     print("----")
