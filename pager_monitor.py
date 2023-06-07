@@ -3,15 +3,25 @@
 from multiprocessing import Process, Event
 import argparse
 
+from demod import demod as d
+from grc import pager_nogui, pager
+
 def dsp_process(exit_event, no_gui: bool = False):
-    if no_gui: from grc import pager_nogui as pager
-    else: from grc import pager
-    pager.main()
-    exit_event.set()
+    try:
+        print("Starting dsp")
+        if no_gui: pager_nogui.main()
+        else: pager.main()
+        print("Ended dsp")
+    finally:
+        exit_event.set()
 
 def demod_process(exit_event):
-    from demod import demod
-    exit_event.set()
+    try:
+        print("Starting demod")
+        d.start()
+        print("Ended demod")
+    finally:
+        exit_event.set()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

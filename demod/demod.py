@@ -1,7 +1,6 @@
 import asyncio
 import zmq
 import zmq.asyncio
-import sys
 import typing
 import time
 import postprocess
@@ -53,23 +52,27 @@ async def run():
     zmq_tasks = []
     in_tasks = []
     out_tasks = []
+    multimon_tasks = []
 
-    log_file = open("pager.log", "ba")
+    with open("pager.log", "ba") as log_file:
+        for channel in channels:
+            new_proc = await run_multimon(label=channel)
+            new_q = asyncio.Queue()
+            new_buffer_ready = asyncio.Event()
 
-    for channel in channels:
-        new_proc = await run_multimon(label=channel)
-        new_q = asyncio.Queue()
-        new_buffer_ready = asyncio.Event()
+            procs.append(new_proc)
+            q.append(new_q)
+            
+            zmq_tasks.append(asyncio.create_task(watch_zmq(channel, new_q, new_buffer_ready)))
+            in_tasks.append(asyncio.create_task(stream_stdin(new_proc, new_q, new_buffer_ready)))
+            out_tasks.append(asyncio.create_task(watch_stdout(new_proc, log_file)))
+            multimon_tasks.append(asyncio.create_task(new_proc.wait()))
 
-        procs.append(new_proc)
-        q.append(new_q)
-        
-        zmq_tasks.append(asyncio.create_task(watch_zmq(channel, new_q, new_buffer_ready)))
-        in_tasks.append(asyncio.create_task(stream_stdin(new_proc, new_q, new_buffer_ready)))
-        out_tasks.append(asyncio.create_task(watch_stdout(new_proc, log_file)))
+        all_tasks = zmq_tasks + in_tasks + out_tasks + multimon_tasks
+        done, pending = await asyncio.wait(all_tasks, return_when=asyncio.FIRST_COMPLETED)
 
-    await asyncio.gather(*[proc.wait() for proc in procs])
+        for done_task in done: raise done_task.exception()
 
-    log_file.close()
 
-asyncio.run(run())
+def start():
+    asyncio.run(run())
