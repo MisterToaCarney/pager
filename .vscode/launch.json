@@ -10,7 +10,8 @@
             "request": "launch",
             "program": "pager_monitor.py",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "args": ["--service-account", "/home/toa/secret_firebase_key.json"]
         }
     ]
 }

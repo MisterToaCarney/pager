@@ -5,22 +5,27 @@ import postprocess.ambo as ambo
 
 import uplink
 
-async def begin(line: bytes):
-    print("----")
-    text = line.decode()
-    print("DEBUG", text, end='')
-
+def parse_page(text):
     date = postprocess.date.parse(text)
-    if date is None: return
+    if date is None: return None
 
     parsed_pocsag = pocsag.parse(text, date)
     parsed_flex = flex.parse(text, date)
-    print("FLEX RESULT", parsed_flex)
-    print("POCSAG RESULT", parsed_pocsag)
 
-    if parsed_pocsag: job = ambo.parse_job_assignment(parsed_pocsag.message)
-    elif parsed_flex: job = ambo.parse_job_assignment(parsed_flex.message)
-    else: job = None
+    if parsed_pocsag: return parsed_pocsag
+    elif parsed_flex: return parsed_flex
+    else: return None
+
+async def begin(line: bytes):
+    print("----")
+    text = line.decode()
+    
+    parsed_page = parse_page(text)
+    if not parsed_page: return
+    print("PAGE", parsed_page)
+    page_ref = await uplink.add_page(parsed_page)
+   
+    job = ambo.parse_job_assignment(parsed_page.message)
+    if not job: return 
     print("JOB", job)
-
-    if job: await uplink.add_job_assignment(date, job)
+    job_ref = await uplink.add_job_assignment(parsed_page.date, page_ref, job)
