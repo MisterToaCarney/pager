@@ -32,7 +32,7 @@ def generate_regex():
         codes_regex_str += "|"
     codes_regex_str = codes_regex_str[:-1]
 
-    regex_str = f"([A-Z0-9]+) *({codes_regex_str}) *(\w+) *(.+) *[;:] *Flat\/Unit:(.+?[A-Z ]{{3,}})(?=\W|$)"
+    regex_str = f"([A-Z0-9]+) *({codes_regex_str}) *(\w+) *(.+) *[;:] *Flat\/Unit:(.*\/.+?[A-Z ]{{3,}})(?=\W|$)"
     return re.compile(regex_str)
 
 @dataclass(frozen=True)
