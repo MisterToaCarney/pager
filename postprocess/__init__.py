@@ -1,8 +1,7 @@
+import postprocess.date
 import postprocess.flex_next as flex
 import postprocess.pocsag as pocsag
-import postprocess.date
-# job_re = re.compile("(\w+) *(PTS|GREEN|ORANGE|RED|PURPLE|NOTIFICATION|AIR TRANSFER|PRIVATE HIRE) *(\d?) *(\w+) *(.+) *; *Flat\/Unit:([\w&\/\- ]+[A-Z]{2,})")
-
+import postprocess.ambo as ambo
 
 def begin(line: bytes):
     print("----")
@@ -16,4 +15,9 @@ def begin(line: bytes):
     parsed_flex = flex.parse(text, date)
     print("FLEX RESULT", parsed_flex)
     print("POCSAG RESULT", parsed_pocsag)
-    
+
+    if parsed_pocsag: job = ambo.parse_job_assignment(parsed_pocsag.message)
+    elif parsed_flex: job = ambo.parse_job_assignment(parsed_flex.message)
+    else: job = None
+
+    print("JOB", job)
