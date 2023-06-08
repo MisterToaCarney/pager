@@ -22,7 +22,7 @@ firebase_admin.initialize_app(cred)
 client = firebase_admin.firestore_async.client()
 
 async def add_job_assignment(date, job: JobAssignment):
-    col = client.collection("tests")
+    col = client.collection("ambo_assignments")
     entry = FirestoreJobAssignment(**asdict(job), date=date)
     await col.add(document_data=asdict(entry))
     
