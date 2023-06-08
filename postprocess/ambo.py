@@ -35,10 +35,9 @@ def generate_regex():
     regex_str = f"([A-Z0-9]+) *({codes_regex_str}) *(\w+) *(.+) *[;:] *Flat\/Unit:(.+?[A-Z ]{{3,}})(?=\W|$)"
     return re.compile(regex_str)
 
-@dataclass
+@dataclass(frozen=True)
 class JobAssignment:
     message: str
-    match: re.Match[str]
     unit: str
     priority: str
     type_code: str
@@ -53,7 +52,6 @@ def parse_job_assignment(message: str) -> JobAssignment | None:
 
     return JobAssignment(
         message=message,
-        match=job_match,
         unit=job_match[1],
         priority=job_match[2],
         type_code=job_match[3],

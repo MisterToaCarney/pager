@@ -3,7 +3,9 @@ import postprocess.flex_next as flex
 import postprocess.pocsag as pocsag
 import postprocess.ambo as ambo
 
-def begin(line: bytes):
+import uplink
+
+async def begin(line: bytes):
     print("----")
     text = line.decode()
     print("DEBUG", text, end='')
@@ -19,5 +21,6 @@ def begin(line: bytes):
     if parsed_pocsag: job = ambo.parse_job_assignment(parsed_pocsag.message)
     elif parsed_flex: job = ambo.parse_job_assignment(parsed_flex.message)
     else: job = None
-
     print("JOB", job)
+
+    if job: await uplink.add_job_assignment(date, job)

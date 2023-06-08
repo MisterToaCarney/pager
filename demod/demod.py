@@ -16,7 +16,7 @@ async def watch_stdout(proc: asyncio.subprocess.Process, log_file: typing.Binary
         log_file.write(mon_out)
         # sys.stdout.buffer.flush()
         log_file.flush()
-        postprocess.begin(mon_out)
+        await postprocess.begin(mon_out)
 
 async def stream_stdin(proc: asyncio.subprocess.Process, q: asyncio.Queue, buffer_ready: asyncio.Event):
     while proc.returncode is None:
