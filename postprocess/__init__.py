@@ -19,6 +19,7 @@ def parse_page(text):
 async def begin(line: bytes):
     print("----")
     text = line.decode()
+    print("RAW", text)
     
     parsed_page = parse_page(text)
     if not parsed_page: return
