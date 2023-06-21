@@ -32,7 +32,7 @@ import sip
 
 class pager(gr.top_block, Qt.QWidget):
 
-    def __init__(self):
+    def __init__(self, iio_context: str):
         gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
@@ -70,7 +70,7 @@ class pager(gr.top_block, Qt.QWidget):
         self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.iio_context = iio_context = "ip:pluto.local"
+        self.iio_context = iio_context
         self.hw_freq = hw_freq = 157.9e6
 
         ##################################################
@@ -313,14 +313,14 @@ class pager(gr.top_block, Qt.QWidget):
 
 
 
-def main(top_block_cls=pager, options=None):
+def main(top_block_cls=pager, iio_context="ip:192.168.1.31"):
 
     if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
         style = gr.prefs().get_string('qtgui', 'style', 'raster')
         Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls()
+    tb = top_block_cls(iio_context=iio_context)
 
     tb.start()
 

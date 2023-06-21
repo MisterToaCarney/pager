@@ -28,7 +28,7 @@ from gnuradio import zeromq
 
 class pager_nogui(gr.top_block):
 
-    def __init__(self):
+    def __init__(self, iio_context: str):
         gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
 
         ##################################################
@@ -38,15 +38,15 @@ class pager_nogui(gr.top_block):
         self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.iio_context = iio_context = "ip:pluto.local"
+        self.iio_context = iio_context
         self.hw_freq = hw_freq = 157.9e6
 
         ##################################################
         # Blocks
         ##################################################
 
-        self.zeromq_pub_sink_0_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch2.socket', 500, False, (-1), '', False, True)
-        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch1.socket', 500, False, (-1), '', False, True)
+        self.zeromq_pub_sink_0_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch2.socket', 500, False, (-1), '', True)
+        self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch1.socket', 500, False, (-1), '', True)
         self.iio_pluto_source_0 = iio.fmcomms2_source_fc32(iio_context if iio_context else iio.get_pluto_uri(), [True, True], 32768)
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(int(hw_freq))
@@ -146,8 +146,9 @@ class pager_nogui(gr.top_block):
 
 
 
-def main(top_block_cls=pager_nogui, options=None):
-    tb = top_block_cls()
+def main(top_block_cls=pager_nogui, iio_context="ip:192.168.1.31"):
+    
+    tb = top_block_cls(iio_context=iio_context)
 
     def sig_handler(sig=None, frame=None):
         tb.stop()
