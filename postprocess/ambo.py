@@ -32,7 +32,7 @@ def generate_regex():
         codes_regex_str += "|"
     codes_regex_str = codes_regex_str[:-1]
 
-    regex_str = f"([A-Z0-9]+) *({codes_regex_str}) *(\w+) *(.+) *[;:] *Flat\/Unit:(.*\/.+?[A-Z ]{{3,}})(?=\W|$)"
+    regex_str = f"([A-Z0-9]+) *({codes_regex_str}) *(\w+) *(.+) *[;:] *Flat\/Unit: *(.+)"
     return re.compile(regex_str)
 
 @dataclass(frozen=True)
@@ -45,9 +45,13 @@ class JobAssignment:
     address: str
 
 job_assignment_re = generate_regex()
+sanitize_re = re.compile("<ETX>|Response #:.+")
 
 def parse_job_assignment(message: str) -> JobAssignment | None:
-    job_match = job_assignment_re.search(message)
+    sanitized_message = sanitize_re.sub("", message)
+    sanitized_message = sanitized_message.strip()
+
+    job_match = job_assignment_re.search(sanitized_message)
     if job_match is None: return None
 
     return JobAssignment(
