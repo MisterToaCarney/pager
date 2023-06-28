@@ -5,13 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Python: Run Main",
             "type": "python",
             "request": "launch",
             "program": "pager_monitor.py",
             "console": "integratedTerminal",
             "justMyCode": true,
-            "args": ["--service-account", "/home/toa/secret_firebase_key.json"]
+            "args": [
+                "--service-account",
+                "/home/toa/secret_firebase_key.json"
+            ]
         }
     ]
 }
