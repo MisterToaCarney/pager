@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 from multiprocessing import Process, Event
-import argparse
 
 import config
 from demod import demod as d
