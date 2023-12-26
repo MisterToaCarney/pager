@@ -31,7 +31,7 @@ import sip
 
 class pager(gr.top_block, Qt.QWidget):
 
-    def __init__(self):
+    def __init__(self, iio_context='ip:pluto.local'):
         gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
@@ -62,13 +62,17 @@ class pager(gr.top_block, Qt.QWidget):
             print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
 
         ##################################################
+        # Parameters
+        ##################################################
+        self.iio_context = iio_context
+
+        ##################################################
         # Variables
         ##################################################
         self.rtl_samp_rate = rtl_samp_rate = 264600
         self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.iio_context = iio_context = "ip:pluto.local"
         self.hw_freq = hw_freq = 157.9e6
 
         ##################################################
@@ -257,6 +261,12 @@ class pager(gr.top_block, Qt.QWidget):
 
         event.accept()
 
+    def get_iio_context(self):
+        return self.iio_context
+
+    def set_iio_context(self, iio_context):
+        self.iio_context = iio_context
+
     def get_rtl_samp_rate(self):
         return self.rtl_samp_rate
 
@@ -291,12 +301,6 @@ class pager(gr.top_block, Qt.QWidget):
         self.freq_xlating_fir_filter_xxx_0.set_taps(self.lpf)
         self.freq_xlating_fir_filter_xxx_0_0.set_taps(self.lpf)
 
-    def get_iio_context(self):
-        return self.iio_context
-
-    def set_iio_context(self, iio_context):
-        self.iio_context = iio_context
-
     def get_hw_freq(self):
         return self.hw_freq
 
@@ -308,12 +312,21 @@ class pager(gr.top_block, Qt.QWidget):
 
 
 
+def argument_parser():
+    parser = ArgumentParser()
+    parser.add_argument(
+        "--iio-context", dest="iio_context", type=str, default='ip:pluto.local',
+        help="Set IIO Context [default=%(default)r]")
+    return parser
+
 
 def main(top_block_cls=pager, options=None):
+    if options is None:
+        options = argument_parser().parse_args()
 
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls()
+    tb = top_block_cls(iio_context=options.iio_context)
 
     tb.start()
 

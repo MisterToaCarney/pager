@@ -57,18 +57,6 @@ blocks:
     coordinate: [296, 24.0]
     rotation: 0
     state: true
-- name: iio_context
-  id: variable
-  parameters:
-    comment: ''
-    value: '"ip:pluto.local"'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [24, 144.0]
-    rotation: 0
-    state: true
 - name: lpf
   id: variable_low_pass_filter_taps
   parameters:
@@ -297,6 +285,23 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [784, 32.0]
+    rotation: 0
+    state: true
+- name: iio_context
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: IIO Context
+    short_id: ''
+    type: str
+    value: ip:pluto.local
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [24, 144.0]
     rotation: 0
     state: true
 - name: iio_pluto_source_0
