@@ -24,7 +24,8 @@ async def begin(line: bytes):
     parsed_page = parse_page(text)
     if not parsed_page: return
     print("PAGE", parsed_page)
-    page_ref = await uplink.add_page(parsed_page)
+    if (not parsed_page.message.startswith("This is a test periodic page")):
+        page_ref = await uplink.add_page(parsed_page)
    
     job = ambo.parse_job_assignment(parsed_page.message)
     if not job: return 
