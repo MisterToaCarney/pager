@@ -2,6 +2,9 @@ import postprocess.date
 import postprocess.flex_next as flex
 import postprocess.pocsag as pocsag
 import postprocess.ambo as ambo
+import postprocess.fire as fire
+
+from postprocess.flex_next import ParsedFlexPage
 
 import uplink
 
@@ -22,12 +25,16 @@ async def begin(line: bytes):
     print("RAW", text, end="")
     
     parsed_page = parse_page(text)
+    if isinstance(parsed_page, ParsedFlexPage):
+        parsed_page = fire.defrag_fire_page(parsed_page)
+
     if not parsed_page: return
     print("PAGE", parsed_page)
+
     if (not parsed_page.message.startswith("This is a test periodic page")):
         page_ref = await uplink.add_page(parsed_page)
    
     job = ambo.parse_job_assignment(parsed_page.message)
     if not job: return 
-    print("JOB", job)
+    print("AMBO_JOB", job)
     job_ref = await uplink.add_job_assignment(parsed_page.date, page_ref, job)

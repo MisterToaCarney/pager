@@ -14,6 +14,7 @@ class FragmentItem:
 class ParsedFlexPage:
     flex_match: re.Match[str]
     date: datetime.datetime
+    address: str
     message: str
 
 class FlexDefragmenter:
@@ -53,6 +54,7 @@ def parse(text: str, message_date: datetime.datetime) -> ParsedFlexPage | None:
         return ParsedFlexPage(
             flex_match=flex_match,
             date=message_date,
+            address=address,
             message=defragged
         )
     else: return None
