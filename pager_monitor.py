@@ -4,13 +4,13 @@ from multiprocessing import Process, Event
 
 import config
 from demod import demod as d
-from grc import pager_nogui, pager
+from dsp import pager, pager_nogui
 
 def dsp_process(exit_event, no_gui: bool = False):
     try:
         print("Starting dsp")
-        if no_gui: pager_nogui.main(iio_context=config.args.iio_context)
-        else: pager.main(iio_context=config.args.iio_context)
+        if no_gui: pager_nogui.main(options=config.args)
+        else: pager.main(options=config.args)
         print("Ended dsp")
     finally:
         exit_event.set()

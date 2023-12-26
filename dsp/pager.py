@@ -7,9 +7,8 @@
 # GNU Radio Python Flow Graph
 # Title: Not titled yet
 # Author: toa
-# GNU Radio version: 3.10.6.0
+# GNU Radio version: 3.10.8.0
 
-from packaging.version import Version as StrictVersion
 from PyQt5 import Qt
 from gnuradio import qtgui
 from gnuradio import analog
@@ -32,7 +31,7 @@ import sip
 
 class pager(gr.top_block, Qt.QWidget):
 
-    def __init__(self, iio_context: str):
+    def __init__(self):
         gr.top_block.__init__(self, "Not titled yet", catch_exceptions=True)
         Qt.QWidget.__init__(self)
         self.setWindowTitle("Not titled yet")
@@ -56,10 +55,9 @@ class pager(gr.top_block, Qt.QWidget):
         self.settings = Qt.QSettings("GNU Radio", "pager")
 
         try:
-            if StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
-                self.restoreGeometry(self.settings.value("geometry").toByteArray())
-            else:
-                self.restoreGeometry(self.settings.value("geometry"))
+            geometry = self.settings.value("geometry")
+            if geometry:
+                self.restoreGeometry(geometry)
         except BaseException as exc:
             print(f"Qt GUI: Could not restore geometry: {str(exc)}", file=sys.stderr)
 
@@ -70,7 +68,7 @@ class pager(gr.top_block, Qt.QWidget):
         self.decimation = decimation = 12
         self.samp_rate = samp_rate = rtl_samp_rate // decimation
         self.lpf = lpf = firdes.low_pass(1.0, rtl_samp_rate, rtl_samp_rate / (2*decimation),5000, window.WIN_HAMMING, 6.76)
-        self.iio_context = iio_context
+        self.iio_context = iio_context = "ip:pluto.local"
         self.hw_freq = hw_freq = 157.9e6
 
         ##################################################
@@ -228,10 +226,8 @@ class pager(gr.top_block, Qt.QWidget):
         	tau=(50e-6),
         	max_dev=5e3,
           )
-        self.analog_agc_xx_0_0 = analog.agc_ff((1e-4), 0.2, 0.2)
-        self.analog_agc_xx_0_0.set_max_gain(65536)
-        self.analog_agc_xx_0 = analog.agc_ff((1e-4), 0.2, 0.2)
-        self.analog_agc_xx_0.set_max_gain(65536)
+        self.analog_agc_xx_0_0 = analog.agc_ff((1e-4), 0.2, 0.2, 65536)
+        self.analog_agc_xx_0 = analog.agc_ff((1e-4), 0.2, 0.2, 65536)
 
 
         ##################################################
@@ -313,14 +309,11 @@ class pager(gr.top_block, Qt.QWidget):
 
 
 
-def main(top_block_cls=pager, iio_context="ip:192.168.1.31"):
+def main(top_block_cls=pager, options=None):
 
-    if StrictVersion("4.5.0") <= StrictVersion(Qt.qVersion()) < StrictVersion("5.0.0"):
-        style = gr.prefs().get_string('qtgui', 'style', 'raster')
-        Qt.QApplication.setGraphicsSystem(style)
     qapp = Qt.QApplication(sys.argv)
 
-    tb = top_block_cls(iio_context=iio_context)
+    tb = top_block_cls()
 
     tb.start()
 
