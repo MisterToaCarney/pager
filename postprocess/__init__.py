@@ -37,7 +37,7 @@ async def begin(line: bytes):
     fire_assignment = fire.parse_fire_assignment(parsed_page.message)
     if fire_assignment:
         print("FIRE_JOB", fire_assignment)
-        # TODO fire uplink
+        fire_ref = await uplink.add_fire_assignment(parsed_page.date, page_ref, fire_assignment)
 
     ambo_assignment = ambo.parse_job_assignment(parsed_page.message)
     if ambo_assignment:

@@ -8,6 +8,7 @@ from dataclasses import dataclass, asdict
 from postprocess.ambo import JobAssignment
 from postprocess.pocsag import ParsedPocsagPage
 from postprocess.flex_next import ParsedFlexPage
+from postprocess.fire import FireAssignment
 
 @dataclass
 class FirestoreJobAssignment:
@@ -17,6 +18,18 @@ class FirestoreJobAssignment:
     type_code: str
     type_plaintext: str
     address: str
+    date: datetime.datetime
+    page_ref: AsyncDocumentReference
+
+@dataclass
+class FirestoreFireAssignment:
+    message: str
+    units: list[str]
+    type: str
+    address: str
+    xstreet: str
+    details: str
+    job_id: int
     date: datetime.datetime
     page_ref: AsyncDocumentReference
 
@@ -41,3 +54,8 @@ async def add_job_assignment(date, page_ref: AsyncDocumentReference, job: JobAss
     update_time, ref = await col.add(document_data=asdict(entry))
     return ref
     
+async def add_fire_assignment(date, page_ref: AsyncDocumentReference, assignment: FireAssignment):
+    col = client.collection("fire_assignments")
+    entry = FirestoreFireAssignment(**asdict(assignment), date=date, page_ref=page_ref)
+    update_time, ref = await col.add(document_data=asdict(entry))
+    return ref
