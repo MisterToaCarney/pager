@@ -29,12 +29,17 @@ async def begin(line: bytes):
         parsed_page = fire.defrag_fire_page(parsed_page)
 
     if not parsed_page: return
-    print("PAGE", parsed_page)
+    # print("PAGE", parsed_page)
 
     if (not parsed_page.message.startswith("This is a test periodic page")):
         page_ref = await uplink.add_page(parsed_page)
-   
-    job = ambo.parse_job_assignment(parsed_page.message)
-    if not job: return 
-    print("AMBO_JOB", job)
-    job_ref = await uplink.add_job_assignment(parsed_page.date, page_ref, job)
+
+    fire_assignment = fire.parse_fire_assignment(parsed_page.message)
+    if fire_assignment:
+        print("FIRE_JOB", fire_assignment)
+        # TODO fire uplink
+
+    ambo_assignment = ambo.parse_job_assignment(parsed_page.message)
+    if ambo_assignment:
+        print("AMBO_JOB", ambo_assignment)
+        job_ref = await uplink.add_job_assignment(parsed_page.date, page_ref, ambo_assignment)

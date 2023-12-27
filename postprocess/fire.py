@@ -3,6 +3,10 @@ import re
 from dataclasses import dataclass
 
 part_re = re.compile("\(Part (\d+) of (\d+)\)")
+bracket_re = re.compile("\(.*?\)")
+fire_assignment_re = re.compile("^ *(ADV|AIRH|AIRL|AMB2FIR|EXERCISE|FIREALM|FIRETEST|HAZ|HAZGAS|HAZFLAM|LINERESC|MCDEM|MED|MEDFR|MIN|MVC|MVCHEVY|MVCRESC|NAT1|NAT2|NAT3|NE|NOT|POL2FIR|RESC|SHIP|SPRNKLR|STNCALL|STRU|TEVAC|USAR|WATERESC|VEG) +(.*?)\. *(?:\.(.*)\.)? *#F(\d+)")
+xstreet_re = re.compile("\(XStr *(.+)\)")
+units_re = re.compile("^ *\(([\w\d, ]+)\)")
 
 @dataclass(frozen=True)
 class FireFragment:
@@ -11,6 +15,16 @@ class FireFragment:
   of_num: int
   message: str
   timestamp: float
+
+@dataclass(frozen=True)
+class FireAssignment:
+  message: str
+  units: list[str]
+  type: str
+  address: str
+  xstreet: str
+  details: str
+  job_id: int
 
 class FireDefragmenter:
   def __init__(self, disable_garbage_collection=False):
@@ -73,6 +87,34 @@ def defrag_fire_page(flex_page: ParsedFlexPage) -> ParsedFlexPage | None:
       message=defragmented_message
     )
   
+def parse_fire_assignment(message: str) -> FireAssignment | None:
+  base_message = bracket_re.sub("", message)
+  fire_assignment_match = fire_assignment_re.search(base_message)
+  if fire_assignment_match is None: return None
+
+  units_match = units_re.search(message)
+  if units_match:
+    units_str = units_match[1]
+    units = [u.strip() for u in units_str.split(",")]
+  else:
+    units = []
   
+  xstreet_match = xstreet_re.search(message)
+  if xstreet_match: 
+    xstreet = xstreet_match[1]
+  else: 
+    xstreet = ""
+
+  return FireAssignment(
+    message=message,
+    units=units,
+    type=fire_assignment_match[1],
+    address=fire_assignment_match[2],
+    details=fire_assignment_match[3],
+    job_id=int(fire_assignment_match[4]),
+    xstreet=xstreet
+  )
+   
+
 
   
