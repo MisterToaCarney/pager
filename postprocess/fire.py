@@ -5,7 +5,7 @@ from dataclasses import dataclass
 part_re = re.compile("\(Part (\d+) of (\d+)\)")
 bracket_re = re.compile("\(.*?\)")
 fire_assignment_re = re.compile("^ *(ADV|AIRH|AIRL|AMB2FIR|EXERCISE|FIREALM|FIRETEST|HAZ|HAZGAS|HAZFLAM|LINERESC|MCDEM|MED|MEDFR|MIN|MVC|MVCHEVY|MVCRESC|NAT1|NAT2|NAT3|NE|NOT|POL2FIR|RESC|SHIP|SPRNKLR|STNCALL|STRU|TEVAC|USAR|WATERESC|VEG) +(.*?)\. *(?:\.(.*)\.)? *#F(\d+)")
-xstreet_re = re.compile("\(XStr *(.+)\)")
+xstreet_re = re.compile("\(XStr *(.+?)\)")
 units_re = re.compile("^ *\(([\w\d, ]+)\)")
 
 @dataclass(frozen=True)
