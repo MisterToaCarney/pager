@@ -1,15 +1,12 @@
-FROM python:3.11-bookworm
+FROM archlinux:latest
 
-WORKDIR /usr/src/app
+RUN pacman -Syyu --noconfirm && pacman-db-upgrade
 
-RUN apt-get update && apt-get install -y gnuradio multimon-ng
-
-COPY requirements.txt ./
-RUN pip install --no-cache-dir -r requirements.txt
-
+RUN mkdir /app
+WORKDIR /app
 COPY . .
 
-ENV PYTHONPATH "${PYTHONPATH}:/usr/lib/python3/dist-packages/"
+RUN pacman -S --noconfirm multimon-ng gnuradio python qwt python-pip
+RUN pip install --break-system-packages -r requirements.txt
 
-ENTRYPOINT [ "python", "./pager_monitor.py", "--nogui" ]
-CMD ["--service-account", "/service_account.json", "--iio-context", "ip:192.168.1.31"]
+CMD [ "/app/pager_monitor.py", "--nogui", "--service-account", "/app/firebase_key.json", "--iio-context", "ip:192.168.1.31" ]
