@@ -1,12 +1,14 @@
-FROM archlinux:latest
+FROM ubuntu:mantic
 
-RUN pacman -Syyu --noconfirm && pacman-db-upgrade
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN mkdir /app
+RUN apt-get update
+RUN apt-get install -y gnuradio multimon-ng python3 python3-pip
+
 WORKDIR /app
 COPY . .
+COPY firebase_key.json firebase_key.json
 
-RUN pacman -S --noconfirm multimon-ng gnuradio python qwt python-pip
-RUN pip install --break-system-packages -r requirements.txt
+RUN pip3 install --break-system-packages -r requirements.txt
 
-CMD [ "/app/pager_monitor.py", "--nogui", "--service-account", "/app/firebase_key.json", "--iio-context", "ip:192.168.1.31" ]
+CMD [ "./pager_monitor.py", "--nogui", "--service-account", "firebase_key.json", "--iio-context", "ip:192.168.1.31" ]
