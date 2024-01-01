@@ -311,7 +311,7 @@ blocks:
     alias: ''
     bandwidth: rtl_samp_rate
     bbdc: 'True'
-    buffer_size: '32768'
+    buffer_size: rtl_samp_rate // 4
     comment: ''
     filter: ''
     filter_source: '''Auto'''

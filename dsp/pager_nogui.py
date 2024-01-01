@@ -51,7 +51,7 @@ class pager_nogui(gr.top_block):
 
         self.zeromq_pub_sink_0_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch2.socket', 500, False, (-1), '', False, True)
         self.zeromq_pub_sink_0 = zeromq.pub_sink(gr.sizeof_short, 1, 'ipc:///tmp/pager_ch1.socket', 500, False, (-1), '', False, True)
-        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32(iio_context if iio_context else iio.get_pluto_uri(), [True, True], 32768)
+        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32(iio_context if iio_context else iio.get_pluto_uri(), [True, True], (rtl_samp_rate//2))
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(int(hw_freq))
         self.iio_pluto_source_0.set_samplerate(rtl_samp_rate)

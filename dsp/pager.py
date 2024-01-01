@@ -202,7 +202,7 @@ class pager(gr.top_block, Qt.QWidget):
 
         self._qtgui_freq_sink_x_0_win = sip.wrapinstance(self.qtgui_freq_sink_x_0.qwidget(), Qt.QWidget)
         self.top_layout.addWidget(self._qtgui_freq_sink_x_0_win)
-        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32(iio_context if iio_context else iio.get_pluto_uri(), [True, True], 32768)
+        self.iio_pluto_source_0 = iio.fmcomms2_source_fc32(iio_context if iio_context else iio.get_pluto_uri(), [True, True], (rtl_samp_rate // 4))
         self.iio_pluto_source_0.set_len_tag_key('packet_len')
         self.iio_pluto_source_0.set_frequency(int(hw_freq))
         self.iio_pluto_source_0.set_samplerate(rtl_samp_rate)
