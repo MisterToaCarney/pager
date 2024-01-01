@@ -21,7 +21,7 @@
             "justMyCode": true,
             "args": [
                 "--service-account",
-                "/home/toa/secret_firebase_key.json"
+                "./firebase_key.json"
             ]
         },
         {
